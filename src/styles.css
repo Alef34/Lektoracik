@@ -1,0 +1,10 @@
+:root{
+  --header-bg: #7c3aed;
+}
+body{font-family: Inter, system-ui, Arial, sans-serif; margin:0}
+.app-header{background:var(--header-bg); color:white; padding:12px}
+.app-header h1{margin:0;font-size:1.1rem}
+main{padding:12px}
+
+/* FullCalendar height fix */
+.fc .fc-scroller{max-height: calc(100vh - 160px);}
