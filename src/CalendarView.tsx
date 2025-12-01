@@ -5,7 +5,6 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import initialEvents from './data/events.json'
 import lectorsRaw from './data/lectors.json'
-import ImportControls from './components/ImportControls'
 import skLocale from '@fullcalendar/core/locales/sk'
 import EventModal from './components/EventModal'
 import MobileAgendaView from './MobileAgendaView'
@@ -34,7 +33,13 @@ function toCalendarEvent(e: SourceEvent) {
 }
 
 export default function CalendarView() {
-  const [eventsSrc, setEventsSrc] = useState<SourceEvent[]>(initialEvents as SourceEvent[])
+  const [eventsSrc, setEventsSrc] = useState<SourceEvent[]>(() => {
+    try {
+      const raw = localStorage.getItem('events')
+      if (raw) return JSON.parse(raw) as SourceEvent[]
+    } catch (e) {}
+    return initialEvents as SourceEvent[]
+  })
   const [modalOpen, setModalOpen] = useState(false)
   const [editingEvent, setEditingEvent] = useState<SourceEvent | null>(null)
   const [isMobile, setIsMobile] = useState<boolean>(true)
@@ -112,9 +117,10 @@ export default function CalendarView() {
     setModalOpen(true)
   }
 
-  function handleImport(newEvents: SourceEvent[]) {
-    setEventsSrc((prev) => [...prev, ...newEvents])
-  }
+  // persist events to localStorage whenever they change
+  useEffect(() => {
+    try { localStorage.setItem('events', JSON.stringify(eventsSrc)) } catch (e) {}
+  }, [eventsSrc])
 
   function getMasterScheduleForDate(dateStr: string) {
     // weekday: 0 Sunday .. 6 Saturday
@@ -183,7 +189,6 @@ export default function CalendarView() {
   return (
     <div style={{ padding: 12 }}>
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
-        <ImportControls onImport={handleImport} />
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <input type="checkbox" checked={useFullCalendar} onChange={(e) => { setUseFullCalendar(e.target.checked); try { localStorage.setItem('useFullCalendar', e.target.checked ? '1' : '0') } catch (err) {} }} />
