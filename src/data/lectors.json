@@ -1,7 +1,32 @@
-[
-  { "id": "l1", "name": "Jana Novakova" },
-  { "id": "l2", "name": "Peter Svoboda" },
-  { "id": "l3", "name": "Marta Kralova" },
-  { "id": "l4", "name": "Lukáš Horváth" },
-  { "id": "l5", "name": "Eva Mlynáriková" }
+[ 
+
+{ "id": "1", "name": "Ivančíková Danka" },
+{ "id": "2", "name": "Búgelová Diana" },
+{ "id": "3", "name": "Pašková Dominika" },
+{ "id": "4", "name": "Obertová Eva" },
+{ "id": "5", "name": "Čuboňová Gertrúda" },
+{ "id": "6", "name": "Tongeľová Henrieta" },
+{ "id": "7", "name": "Vargová Ivanka" },
+{ "id": "8", "name": "Libantová Janka" },
+{ "id": "9", "name": "Kandráč Janko" },
+{ "id": "10", "name": "Ligačová Jarka" },
+{ "id": "11", "name": "Borecký Jarko" },
+{ "id": "12", "name": "Čuboň Jozef" },
+{ "id": "13", "name": "Galusová Katka" },
+{ "id": "14", "name": "Moravčíková Katka" },
+{ "id": "15", "name": "Petrášová Katka" },
+{ "id": "16", "name": "Mušáková Libuša" },
+{ "id": "17", "name": "Kuchtiak Marek" },
+{ "id": "18", "name": "Koprdová Mária" },
+{ "id": "19", "name": "Macáková Mária" },
+{ "id": "20", "name": "Lenner Marian" },
+{ "id": "21", "name": "Minárik Matúš" },
+{ "id": "22", "name": "Királová Monika" },
+{ "id": "23", "name": "Hollý Samuel" },
+{ "id": "24", "name": "Bojdová Veronika" },
+{ "id": "25", "name": "Majerechová Vierka" },
+{ "id": "26", "name": "Molnárová Violka" },
+{ "id": "27", "name": "Jurkovičová Zuzana" }
+
+
 ]
