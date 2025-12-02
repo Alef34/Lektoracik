@@ -1,11 +1,11 @@
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCXPye8FVLlqGlZXkWWGlZjDxWhueA_3Ac",
-  authDomain: "lektoracik-efdc6.firebaseapp.com",
-  projectId: "lektoracik-efdc6",
-  storageBucket: "lektoracik-efdc6.firebasestorage.app",
-  messagingSenderId: "234940856958",
-  appId: "1:234940856958:web:46635d7d3414f7281df62f"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain:import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECTID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGEBUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGINGSENDERID,
+  appId: import.meta.env.VITE_FIREBASE_APPID
 };
 
 // Initialize Firebase
