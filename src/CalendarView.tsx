@@ -5,6 +5,7 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import initialEvents from './data/events.json'
 import lectorsRaw from './data/lectors.json'
+import { initFirebase, subscribeEvents, addEventFirestore, updateEventFirestore, deleteEventFirestore } from './firebase'
 import skLocale from '@fullcalendar/core/locales/sk'
 import EventModal from './components/EventModal'
 import MobileAgendaView from './MobileAgendaView'
@@ -53,6 +54,7 @@ export default function CalendarView() {
   type SlotOption = { time: string; slotIndex: number; label?: string; used?: boolean }
   const [availableSlots, setAvailableSlots] = useState<SlotOption[]>([])
   const lectors = (lectorsRaw as { id: string; name: string }[])
+  const [firebaseEnabled, setFirebaseEnabled] = useState<boolean>(false)
   const [showDayOverrides, setShowDayOverrides] = useState(false)
   const [dayOverrides, setDayOverrides] = useState<Record<string, number>>(() => {
     try {
@@ -117,10 +119,30 @@ export default function CalendarView() {
     setModalOpen(true)
   }
 
-  // persist events to localStorage whenever they change
+  // initialize Firebase (if `public/firebaseConfig.json` exists) and subscribe; otherwise use localStorage
   useEffect(() => {
+    let unsub: any | undefined
+    let mounted = true
+    initFirebase().then((ok) => {
+      if (!mounted) return
+      if (ok) {
+        setFirebaseEnabled(true)
+        unsub = subscribeEvents((items) => {
+          // items are stored as DB docs (id + fields)
+          setEventsSrc(items as SourceEvent[])
+        })
+      } else {
+        setFirebaseEnabled(false)
+      }
+    })
+    return () => { mounted = false; if (unsub) unsub() }
+  }, [])
+
+  // persist events to localStorage when NOT using Firebase
+  useEffect(() => {
+    if (firebaseEnabled) return
     try { localStorage.setItem('events', JSON.stringify(eventsSrc)) } catch (e) {}
-  }, [eventsSrc])
+  }, [eventsSrc, firebaseEnabled])
 
   function getMasterScheduleForDate(dateStr: string) {
     // weekday: 0 Sunday .. 6 Saturday
@@ -154,11 +176,33 @@ export default function CalendarView() {
       return t.length === 5 ? t + ':00' : t
     }
 
-    if (payload.id) {
-      setEventsSrc((prev) => prev.map((p) => p.id === payload.id ? { ...p, ...payload, startTime: normalizeTime(payload.startTime), endTime: normalizeTime(payload.endTime) } : p))
+    const toSave = { ...payload, startTime: normalizeTime(payload.startTime), endTime: normalizeTime(payload.endTime) }
+    if (firebaseEnabled) {
+      ;(async () => {
+        try {
+          if (payload.id) {
+            await updateEventFirestore(payload.id, toSave)
+          } else {
+            await addEventFirestore(toSave)
+          }
+        } catch (err) {
+          console.error('Firestore save failed', err)
+          // fall back to local state update
+          if (payload.id) {
+            setEventsSrc((prev) => prev.map((p) => p.id === payload.id ? { ...p, ...toSave } : p))
+          } else {
+            const id = `e_${Date.now()}_${Math.floor(Math.random() * 1000)}`
+            setEventsSrc((prev) => [...prev, { ...toSave, id }])
+          }
+        }
+      })()
     } else {
-      const id = `e_${Date.now()}_${Math.floor(Math.random() * 1000)}`
-      setEventsSrc((prev) => [...prev, { ...payload, id, startTime: normalizeTime(payload.startTime), endTime: normalizeTime(payload.endTime) }])
+      if (payload.id) {
+        setEventsSrc((prev) => prev.map((p) => p.id === payload.id ? { ...p, ...toSave } : p))
+      } else {
+        const id = `e_${Date.now()}_${Math.floor(Math.random() * 1000)}`
+        setEventsSrc((prev) => [...prev, { ...toSave, id }])
+      }
     }
     setModalOpen(false)
     setEditingEvent(null)
@@ -166,7 +210,18 @@ export default function CalendarView() {
 
   function handleDeleteEvent(id?: string) {
     if (!id) return
-    setEventsSrc((prev) => prev.filter((p) => p.id !== id))
+    if (firebaseEnabled) {
+      ;(async () => {
+        try {
+          await deleteEventFirestore(id)
+        } catch (err) {
+          console.error('Firestore delete failed', err)
+          setEventsSrc((prev) => prev.filter((p) => p.id !== id))
+        }
+      })()
+    } else {
+      setEventsSrc((prev) => prev.filter((p) => p.id !== id))
+    }
     setModalOpen(false)
     setEditingEvent(null)
   }
@@ -194,6 +249,31 @@ export default function CalendarView() {
             <input type="checkbox" checked={useFullCalendar} onChange={(e) => { setUseFullCalendar(e.target.checked); try { localStorage.setItem('useFullCalendar', e.target.checked ? '1' : '0') } catch (err) {} }} />
             <span style={{ fontSize: 13 }}>Zobraziť plný kalendár</span>
           </label>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ fontSize: 12, color: firebaseEnabled ? 'green' : '#888' }}>{firebaseEnabled ? 'Realtime: ON' : 'Realtime: OFF'}</div>
+            {firebaseEnabled && (
+              <button onClick={async () => {
+                try {
+                  const raw = localStorage.getItem('events')
+                  if (!raw) { alert('Žiadne lokálne udalosti na migráciu'); return }
+                  const arr = JSON.parse(raw) as any[]
+                  let count = 0
+                  for (const ev of arr) {
+                    if (ev.id) {
+                      await updateEventFirestore(ev.id, ev)
+                    } else {
+                      await addEventFirestore(ev)
+                    }
+                    count++
+                  }
+                  alert(`Migrácia dokončená: ${count} udalostí odoslaných do Firestore.`)
+                } catch (err) {
+                  console.error(err)
+                  alert('Migrácia zlyhala, skontrolujte konzolu')
+                }
+              }} style={{ padding: '6px 8px' }}>Migrovať lokálne udalosti do Firestore</button>
+            )}
+          </div>
           <button onClick={() => setShowDayOverrides(true)} style={{ padding: '6px 8px' }}>Nastavenia dní</button>
         </div>
       </div>
