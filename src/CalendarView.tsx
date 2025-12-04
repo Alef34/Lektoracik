@@ -5,7 +5,7 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import initialEvents from './data/events.json'
 import lectorsRaw from './data/lectors.json'
-import { initFirebase, subscribeEvents, addEventFirestore, updateEventFirestore, deleteEventFirestore } from './firebase'
+import { initFirebase, subscribeEvents, addEventFirestore, updateEventFirestore, deleteEventFirestore, getEventFirestore } from './firebase'
 import skLocale from '@fullcalendar/core/locales/sk'
 import EventModal from './components/EventModal'
 import MobileAgendaView from './MobileAgendaView'
@@ -247,7 +247,7 @@ export default function CalendarView() {
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <input type="checkbox" checked={useFullCalendar} onChange={(e) => { setUseFullCalendar(e.target.checked); try { localStorage.setItem('useFullCalendar', e.target.checked ? '1' : '0') } catch (err) {} }} />
-            <span style={{ fontSize: 13 }}>Zobraziť plný kalendár</span>
+            <span style={{ fontSize: 13 }}>Zobraziť plný kalendár &copy;001</span>
           </label>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{ fontSize: 12, color: firebaseEnabled ? 'green' : '#888' }}>{firebaseEnabled ? 'Realtime: ON' : 'Realtime: OFF'}</div>
@@ -258,11 +258,17 @@ export default function CalendarView() {
                   if (!raw) { alert('Žiadne lokálne udalosti na migráciu'); return }
                   const arr = JSON.parse(raw) as any[]
                   let count = 0
+                  //await getEventFirestore()
                   for (const ev of arr) {
+                   console.log('Migrating event to Firestore:', arr)
                     if (ev.id) {
                       await updateEventFirestore(ev.id, ev)
                     } else {
-                      await addEventFirestore(ev)
+                    console.log('Adding event to Firestore:', ev)
+                   await addEventFirestore(ev)
+                    
+                   
+                    console.log('Event migrated.')
                     }
                     count++
                   }

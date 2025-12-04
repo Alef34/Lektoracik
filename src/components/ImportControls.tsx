@@ -1,12 +1,13 @@
 import React, { useState } from 'react'
 import Papa from 'papaparse'
+import { Date } from 'firebase/ai'
 
 type RawRow = Record<string, any>
 type MappedEvent = {
   id: string
   date: string
-  startTime: string
-  endTime?: string
+  startTime: Date
+  endTime?: Date
   slotIndex?: number
   title: string
 }
