@@ -1,8 +1,12 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import pkg from "./package.json";
 
-// Minimal config without ESM-only plugin to avoid require/ESM loading issues
-// https://vite.dev/config/
 export default defineConfig({
-  // If you want React fast-refresh / SWC support, install a compatible
-  // @vitejs/plugin-react version that matches your environment and Node.
-})
+  plugins: [react()],
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version),
+    __BUILD_DATE__: JSON.stringify(new Date().toISOString()),
+    __BUILD_NUMBER__: JSON.stringify(Date.now()),
+  },
+});
