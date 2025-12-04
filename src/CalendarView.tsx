@@ -247,7 +247,7 @@ export default function CalendarView() {
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <input type="checkbox" checked={useFullCalendar} onChange={(e) => { setUseFullCalendar(e.target.checked); try { localStorage.setItem('useFullCalendar', e.target.checked ? '1' : '0') } catch (err) {} }} />
-            <span style={{ fontSize: 13 }}>Zobraziť plný kalendár &copy;001</span>
+            <span style={{ fontSize: 13 }}>Zobraziť plný kalendár &copy;002</span>
           </label>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{ fontSize: 12, color: firebaseEnabled ? 'green' : '#888' }}>{firebaseEnabled ? 'Realtime: ON' : 'Realtime: OFF'}</div>

@@ -6,8 +6,8 @@ type RawRow = Record<string, any>
 type MappedEvent = {
   id: string
   date: string
-  startTime: Date
-  endTime?: Date
+  startTime: string
+  endTime?: string
   slotIndex?: number
   title: string
 }
@@ -71,7 +71,7 @@ export default function ImportControls({ onImport }: Props) {
           header: true,
           dynamicTyping: false,
           skipEmptyLines: true,
-          complete: (res) => {
+          complete: (res: any) => {
             const data = res.data as RawRow[]
             setPreviewRows(data)
             const cols = detectColumns(data)
@@ -102,6 +102,7 @@ export default function ImportControls({ onImport }: Props) {
     const dateStr = String(dateRaw).trim()
     const timeStr = String(timeRaw).trim()
     const endStr = end ? String(end).trim() : undefined
+    console.log(`${dateStr}_${timeStr}_${idx}`)
     return {
       id: `${dateStr}_${timeStr}_${idx}`,
       date: dateStr,

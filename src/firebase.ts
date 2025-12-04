@@ -1,6 +1,6 @@
 import { FirebaseError, getApps, initializeApp } from 'firebase/app'
 import { getFirestore, collection, onSnapshot, addDoc, setDoc, doc, deleteDoc, getDoc, connectFirestoreEmulator } from 'firebase/firestore'
-
+import { v4 as uuid } from "uuid";
 let db: any = null
 let ready = false
 
@@ -80,15 +80,30 @@ export async function addEventFirestore(ev: any) {
   const col = eventsCollection()
 
     try {
-      console.log("idem zapisovat do Firebase...")
-      console.log("db je: ", db)
-ev.id="pokus"
-ev.endTime=""
-      console.log("ev JSON:", ev)
+      //console.log("idem zapisovat do Firebase...")
+      //console.log("db je: ", db)
+
+      ev.endTime=""
+      
+      const generateId = () => uuid();
+      //console.log("ID", generateId())
+   /*
+      if(ev.id===undefined || ev.id==="")
+        {
+          ev.id =   generateId();
+        }
+*/
+      console.log("ev JSON:", ev.id)
 
       const result = await addDoc(collection(db,"events") , ev)
        
       console.log("OK:", result.id)
+ const d = doc(db, 'events', result.id)
+  ev.id = result.id
+  
+  await setDoc(d, ev)
+console.log("OKOK:", result.id)
+
       return result.id
     } catch (err) {
       console.log("Chyba pri pridavani dokumentu do Firestore")
@@ -144,13 +159,15 @@ export async function getEventFirestore() {
 
 export async function updateEventFirestore(id: string, ev: any) {
   const d = doc(db, 'events', id)
-  console.log(ev)
+  console.log("Upravujem", ev)
   ev.endTime = ""
   await setDoc(d, ev)
 }
 
 export async function deleteEventFirestore(id: string) {
+  
   const d = doc(db, 'events', id)
+  console.log("Mazem !!!!!!",id, "...............",d.id)  
   await deleteDoc(d)
 }
 

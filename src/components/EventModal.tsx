@@ -66,6 +66,7 @@ export default function EventModal({ open, initial, onClose, onSave, onDelete, a
       slotIndex: slotIndex ?? 0,
       lectorId: lectorId || undefined
     }
+    console.log("Saving event:", payload)
     onSave(payload)
   }
 
