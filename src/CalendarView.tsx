@@ -241,17 +241,20 @@ export default function CalendarView() {
     if (src) openEdit(src)
   }
 
+const isLocalhost = ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
+console.log("Is localhost:", isLocalhost)
+
   return (
     <div style={{ padding: 12 }}>
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <input type="checkbox" checked={useFullCalendar} onChange={(e) => { setUseFullCalendar(e.target.checked); try { localStorage.setItem('useFullCalendar', e.target.checked ? '1' : '0') } catch (err) {} }} />
-            <span style={{ fontSize: 13 }}>Zobraziť plný kalendár &copy;002</span>
+            <span style={{ fontSize: 13 }}>Zobraziť plný kalendár &copy;003</span>
           </label>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{ fontSize: 12, color: firebaseEnabled ? 'green' : '#888' }}>{firebaseEnabled ? 'Realtime: ON' : 'Realtime: OFF'}</div>
-            {firebaseEnabled && (
+            {firebaseEnabled && isLocalhost && (
               <button onClick={async () => {
                 try {
                   const raw = localStorage.getItem('events')
