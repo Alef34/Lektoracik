@@ -57,15 +57,19 @@ export default function CalendarView() {
   const lectors = (lectorsRaw as { id: string; name: string }[])
   const [firebaseEnabled, setFirebaseEnabled] = useState<boolean>(false)
   const [showDayOverrides, setShowDayOverrides] = useState(false)
+  const [loading, setLoading] = useState<boolean>(false);
   
 useEffect(() => {
   if (!showDayOverrides) return;
+  
 
-  const fetchData = async () => {
-    await loadDayOverrides();   // ← async sa normálne zavolá
+  const load = async () => {
+    setLoading(true);
+    await loadDayOverrides(); // ← async OK
+    setLoading(false);
   };
 
-  fetchData();
+  load();
 }, [showDayOverrides]);
 
 
