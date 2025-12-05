@@ -1,5 +1,5 @@
 import { FirebaseError, getApps, initializeApp } from 'firebase/app'
-import { getFirestore, collection, onSnapshot, addDoc, setDoc, doc, deleteDoc, getDoc, connectFirestoreEmulator } from 'firebase/firestore'
+import { getFirestore, collection, onSnapshot, addDoc, setDoc, doc, deleteDoc, getDoc, connectFirestoreEmulator, getDocs } from 'firebase/firestore'
 import { v4 as uuid } from "uuid";
 let db: any = null
 let ready = false
@@ -18,8 +18,8 @@ export async function initFirebase(): Promise<boolean> {
       appId: import.meta.env.VITE_APP_FIREBASE_APP_ID
       };
 
-      console.log("Inicializujem Firebase...",firebaseConfig .apiKey)
-      console.log("Inicializujem Firebase...",firebaseConfig .projectId)
+      //console.log("Inicializujem Firebase...",firebaseConfig .apiKey)
+      //console.log("Inicializujem Firebase...",firebaseConfig .projectId)
 
     let app
     if (!getApps().length) {
@@ -75,34 +75,69 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   })
 }
 
+// loadDayOverrides.ts
+
+export const loadDayOverrides = async (): Promise<Record<string, number>> => {
+  if (!db) {
+    console.warn("Firestore not initialized, returning empty overrides.");
+    return {};
+  }
+  const snapshot = await getDocs(collection(db, "changes"));
+
+  const result: Record<string, number> = {};
+
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    if (data.date && typeof data.value === "number") {
+      result[data.date] = data.value;
+    }
+  });
+
+  return result;
+};
+
+
+export async function addSpetialDaysToFirestore() {
+   if (!db) {
+    console.warn("Firestore not initialized, skipping addSpetialDaysToFirestore.");
+    return;
+  }
+
+
+  const raw = localStorage.getItem('dayOverrides');
+  if (!raw) return;
+
+  const data: Record<string, number> = JSON.parse(raw);
+  const colRef = collection(db, "changes");
+
+  // vymaž existujúce dokumenty
+  const snapshot = await getDocs(colRef);
+  await Promise.all(snapshot.docs.map(d => deleteDoc(doc(db, "changes", d.id))));
+
+  // pridaj nové
+  for (const [date, value] of Object.entries(data)) {
+    await addDoc(colRef, { date, value });
+  }
+}
+
+
+
 
 export async function addEventFirestore(ev: any) {
   const col = eventsCollection()
 
     try {
-      //console.log("idem zapisovat do Firebase...")
-      //console.log("db je: ", db)
-
-      ev.endTime=""
-      
+           ev.endTime=""
       const generateId = () => uuid();
-      //console.log("ID", generateId())
-   /*
-      if(ev.id===undefined || ev.id==="")
-        {
-          ev.id =   generateId();
-        }
-*/
       console.log("ev JSON:", ev.id)
 
       const result = await addDoc(collection(db,"events") , ev)
-       
       console.log("OK:", result.id)
- const d = doc(db, 'events', result.id)
-  ev.id = result.id
+      const d = doc(db, 'events', result.id)
+      ev.id = result.id
   
-  await setDoc(d, ev)
-console.log("OKOK:", result.id)
+      await setDoc(d, ev)
+      console.log("OKOK:", result.id)
 
       return result.id
     } catch (err) {

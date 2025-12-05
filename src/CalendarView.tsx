@@ -5,11 +5,12 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import initialEvents from './data/events.json'
 import lectorsRaw from './data/lectors.json'
-import { initFirebase, subscribeEvents, addEventFirestore, updateEventFirestore, deleteEventFirestore, getEventFirestore } from './firebase'
+import { initFirebase, subscribeEvents, addEventFirestore, updateEventFirestore, deleteEventFirestore, getEventFirestore, addSpetialDaysToFirestore, loadDayOverrides } from './firebase'
 import skLocale from '@fullcalendar/core/locales/sk'
 import EventModal from './components/EventModal'
 import MobileAgendaView from './MobileAgendaView'
 import type { SourceEvent } from './types'
+
 
 // FullCalendar CSS imports removed — using minimal local styles in `src/styles.css`
 
@@ -56,19 +57,36 @@ export default function CalendarView() {
   const lectors = (lectorsRaw as { id: string; name: string }[])
   const [firebaseEnabled, setFirebaseEnabled] = useState<boolean>(false)
   const [showDayOverrides, setShowDayOverrides] = useState(false)
-  const [dayOverrides, setDayOverrides] = useState<Record<string, number>>(() => {
-    try {
-      const raw = localStorage.getItem('dayOverrides')
-      return raw ? JSON.parse(raw) as Record<string, number> : {}
-    } catch (e) {
-      return {}
-    }
-  })
+  
+  const [dayOverrides, setDayOverrides] = useState<Record<string, number>>({});
+  
+  useEffect(() => {
+  const load = async () => {
+    const overrides = await loadDayOverrides();
+    //console.log("Loaded from Firestore:", overrides);
+   // console.trace("Setting overrides");
 
-  function saveDayOverrides(ov: Record<string, number>) {
-    setDayOverrides(ov)
-    try { localStorage.setItem('dayOverrides', JSON.stringify(ov)) } catch (e) {}
+    setDayOverrides(overrides);
+  };
+
+  load();
+}, []); // DÔLEŽITÉ → prázdne dependency
+
+ async function saveDayOverrides(ov: Record<string, number>) {
+  setDayOverrides(ov);
+
+  try { 
+    localStorage.setItem('dayOverrides', JSON.stringify(ov));
+
+    // počkaj, kým initFirebase dokončí a db je pripravené
+    await initFirebase();
+
+    await addSpetialDaysToFirestore();
+  } catch (e) {
+    console.error("Failed to save day overrides:", e);
   }
+}
+
 
   useEffect(() => {
     // default behaviour: mobile layout unless `useFullCalendar` is true
@@ -242,7 +260,7 @@ export default function CalendarView() {
   }
 
 const isLocalhost = ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
-console.log("Is localhost:", isLocalhost)
+
 
   return (
     <div style={{ padding: 12 }}>
