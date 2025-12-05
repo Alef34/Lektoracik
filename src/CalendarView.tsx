@@ -65,6 +65,7 @@ export default function CalendarView() {
 
     const load = async () => {
       setLoading(true);
+      console.log("Loading day overrides...");
       await loadDayOverrides(); // ← async OK
       setLoading(false);
     };
