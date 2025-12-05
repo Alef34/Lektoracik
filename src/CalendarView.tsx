@@ -59,18 +59,18 @@ export default function CalendarView() {
   const [showDayOverrides, setShowDayOverrides] = useState(false)
   const [loading, setLoading] = useState<boolean>(false);
   
-useEffect(() => {
-  if (!showDayOverrides) return;
-  
+  useEffect(() => {
+    if (!showDayOverrides) return;
+    
 
-  const load = async () => {
-    setLoading(true);
-    await loadDayOverrides(); // ← async OK
-    setLoading(false);
-  };
+    const load = async () => {
+      setLoading(true);
+      await loadDayOverrides(); // ← async OK
+      setLoading(false);
+    };
 
-  load();
-}, [showDayOverrides]);
+    load();
+  }, [showDayOverrides]);
 
 
   const [dayOverrides, setDayOverrides] = useState<Record<string, number>>({});
