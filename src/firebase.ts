@@ -92,7 +92,7 @@ export const loadDayOverrides = async (): Promise<Record<string, number>> => {
       result[data.date] = data.value;
     }
   });
-
+console.log("Loaded day overrides:", result);
   return result;
 };
 
