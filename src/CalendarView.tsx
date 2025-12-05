@@ -58,6 +58,17 @@ export default function CalendarView() {
   const [firebaseEnabled, setFirebaseEnabled] = useState<boolean>(false)
   const [showDayOverrides, setShowDayOverrides] = useState(false)
   
+useEffect(() => {
+  if (!showDayOverrides) return;
+
+  const fetchData = async () => {
+    await loadDayOverrides();   // ← async sa normálne zavolá
+  };
+
+  fetchData();
+}, [showDayOverrides]);
+
+
   const [dayOverrides, setDayOverrides] = useState<Record<string, number>>({});
   
   useEffect(() => {
